@@ -26,17 +26,19 @@ else
   git clone "$REPO" "$SRC"
 fi
 cd "$SRC"
-BRANCH="$(git branch -r | sed 's#^ *origin/##' | grep -i '26h1' | head -1 || true)"
-if [ -z "$BRANCH" ]; then
-  echo "Ветка с 26h1 не найдена. Доступные ветки:" >&2
-  git branch -r >&2
-  echo "Укажи ветку вручную: BRANCH=имя bash $0" >&2
-  BRANCH="${BRANCH_OVERRIDE:-${BRANCH:-}}"
-  [ -n "${BRANCH:-}" ] || exit 1
+echo "origin: $(git remote get-url origin)"
+BRANCH="$(git --no-pager branch -r | sed 's#^ *origin/##' | grep -i '26h1' | head -1 || true)"
+if [ -n "$BRANCH" ]; then
+  echo "Ветка из форка: $BRANCH"
+  git checkout "$BRANCH"
+  git pull --ff-only || true
+else
+  echo "Ветки 26h1 в origin нет, беру код из PR #335 основного репозитория."
+  git remote add upstream https://github.com/mkubecek/vmware-host-modules.git 2>/dev/null || true
+  git fetch upstream pull/335/head:pr-335-26h1 --force
+  git checkout pr-335-26h1
 fi
-echo "Ветка: $BRANCH"
-git checkout "$BRANCH"
-git pull --ff-only || true
+git log --oneline -3
 
 echo "== 3/6 Сборка и установка =="
 make clean || true

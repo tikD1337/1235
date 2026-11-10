@@ -56,7 +56,11 @@ if echo "$SB_STATE" | grep -qi "enabled"; then
       -subj "/CN=VMware modules $(hostname)/"
     chmod 600 "$KEYDIR/MOK.priv"
   fi
-  if ! mokutil --test-key "$KEYDIR/MOK.der" 2>&1 | grep -qi "already enrolled"; then
+  # mokutil --test-key возвращает ненулевой код, даже когда ключ уже добавлен,
+  # поэтому смотрим только на текст вывода (без pipefail-ловушки).
+  TEST_OUT="$(mokutil --test-key "$KEYDIR/MOK.der" 2>&1 || true)"
+  echo "$TEST_OUT"
+  if ! grep -qi "already enrolled" <<<"$TEST_OUT"; then
     echo
     echo "Ключ ещё не добавлен в MOK. Задай ОДНОРАЗОВЫЙ пароль (цифры и латиница)."
     echo "После перезагрузки на синем экране: Enroll MOK -> Continue -> Yes -> пароль -> Reboot."

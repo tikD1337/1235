@@ -35,8 +35,8 @@ if [ -n "$BRANCH" ]; then
 else
   echo "Ветки 26h1 в origin нет, беру код из PR #335 основного репозитория."
   git remote add upstream https://github.com/mkubecek/vmware-host-modules.git 2>/dev/null || true
-  git fetch upstream pull/335/head:pr-335-26h1 --force
-  git checkout pr-335-26h1
+  git fetch upstream pull/335/head
+  git checkout -B pr-335-26h1 FETCH_HEAD
 fi
 git log --oneline -3
 
